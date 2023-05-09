@@ -1,6 +1,7 @@
 import "./App.css";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useState } from 'react';
 
 /*type Pokemon = {
   name: string;
@@ -23,17 +24,33 @@ type Pokemon = {
 
 
 function App() {
-  const { isLoading, isError, data, error } = useQuery({
-    queryKey: ["pokemons"],
-    queryFn: async () => {
-      const data = await axios
-        .get<PokeApiResponse>("https://pokeapi.co/api/v2/pokemon?limit=20")
-        .then((response) => response.data);
-      return data.results;
-    },
-  });
+ 
+  const[page, setPage] = useState(0);
+  const [cont, setCont] = useState(1)
+ 
+  function handlePage(){
+    setPage(page + 10)
+ 
+  if (page >= 0){
+   setCont(cont + 1)
+  }
+  console.log(page) 
+  }
+  function handlePageDecrement(){
+    setPage(Math.max(page - 10, 0))
+   setCont(cont - 1)
+  }
   
-  if (isLoading) {
+ const { isLoading, isError, data, error } = useQuery({
+  queryKey: ["pokemons"],
+  queryFn: async () => {
+    const data = await axios
+      .get<PokeApiResponse>(`https://pokeapi.co/api/v2/pokemon?limit=10&offset=${page}`)
+      .then((response) => response.data);
+    return data.results;
+  },
+});
+ if (isLoading) {
     return <h1>Carregando...</h1>;
   }
 
@@ -55,9 +72,12 @@ function App() {
             nome: {pokemon.name}.<br />
          
           </li>
+
         );
       })}
-      <button>Next Page</button>
+      <button onClick={handlePageDecrement} disabled={page === 0}>previus page</button>
+      <button onClick={handlePage}>Next Page</button>
+      <h2>{cont}</h2>
     </ul>
   );
 }
